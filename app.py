@@ -6,7 +6,7 @@ from pony.orm import db_session, commit, TransactionIntegrityError
 
 from models import Task, Chat, db
 
-TOKEN = '987514099:AAFKLnBbQHgnIGBdGxpcoOGt598dei-v0_U'
+TOKEN = 'XXX'
 
 app = Flask(__name__)
 bot = telebot.TeleBot(TOKEN)

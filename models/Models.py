@@ -4,22 +4,22 @@ db = Database()
 
 
 class Chat(db.Entity):
-    id = PrimaryKey(int)
+    id = PrimaryKey(str)
     type = Required(str)
-    title = Optional(str)
-    username = Optional(str)
-    first_name = Optional(str)
-    last_name = Optional(str)
-    photo = Optional(str)
-    description = Optional(str)
-    invite_link = Optional(str)
-    pinned_message = Optional(str)
+    title = Optional(str, nullable=True)
+    username = Optional(str, nullable=True)
+    first_name = Optional(str, nullable=True)
+    last_name = Optional(str, nullable=True)
+    photo = Optional(str, nullable=True)
+    description = Optional(str, nullable=True)
+    invite_link = Optional(str, nullable=True)
+    pinned_message = Optional(str, nullable=True)
 
     task = Set(lambda: Task)  # A Chat can contain many Task
 
 
 class Task(db.Entity):
-    id = PrimaryKey(int)
+    id = PrimaryKey(int, auto=True)
     task = Required(str)
     chat = Required(Chat)  # A task belongs to a chat
     complete = Required(bool)

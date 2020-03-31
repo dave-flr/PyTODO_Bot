@@ -7,6 +7,7 @@ from pony.orm import db_session, commit, TransactionIntegrityError, select
 from models import Task, Chat, db
 
 TOKEN = 'XXX'
+ME = 987514099
 
 app = Flask(__name__)
 bot = telebot.TeleBot(TOKEN)
@@ -35,10 +36,15 @@ def add_task(message):
         with db_session:
             if Chat.exists(id=str(message.chat.id)):
                 if message.reply_to_message is not None:
+                    if message.reply_to_message.from_user.id == ME:
+                        bot.reply_to(message, "Cannot save my own messages")
+                        return
                     add_new_task(message.reply_to_message.text, str(message.chat.id), False)
+                    bot.reply_to(message, "Task was added.")
                 else:
                     task = message.text.split("/add ", 1)[1]
                     add_new_task(task, str(message.chat.id), False)
+                    bot.reply_to(message, "Task was added.")
             else:
                 add_new_chat(str(message.chat.id),
                              message.chat.type,
@@ -52,8 +58,11 @@ def add_task(message):
                              message.chat.pinned_message)
     except TransactionIntegrityError:
         pass
-    except IndexError:
-        pass  # Empty command
+    except IndexError as error:
+        # is a group
+        task = message.text.split("/add@Todo_taskBot ", 1)[1]
+        add_new_task(task, str(message.chat.id), False)
+        bot.reply_to(message, "Task was added.")
     else:
         pass
 

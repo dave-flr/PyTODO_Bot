@@ -33,12 +33,12 @@ def send_welcome(message):
 @bot.message_handler(commands=['add'])
 def add_task(message):
     try:
-        if message.reply_to_message.from_user.id == ME:
-            bot.reply_to(message, "Cannot save my own messages")
-            return
         with db_session:
             if Chat.exists(id=str(message.chat.id)):
                 if message.reply_to_message is not None:
+                    if message.reply_to_message.from_user.id == ME:
+                        bot.reply_to(message, "Cannot save my own messages")
+                        return
                     add_new_task(message.reply_to_message.text, str(message.chat.id), False)
                     bot.reply_to(message, "Task was added.")
                 else:
@@ -162,7 +162,7 @@ def get_message():
 @app.route("/")
 def webhook():
     bot.remove_webhook()
-    # bot.set_webhook(url='https://pytodobot.herokuapp.com/' + TOKEN)
+    bot.set_webhook(url='https://pytodobot.herokuapp.com/' + TOKEN)
     return "!", 200
 
 

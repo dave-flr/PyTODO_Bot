@@ -6,7 +6,7 @@ from pony.orm import db_session, commit, TransactionIntegrityError, select
 
 from models import Task, Chat, db
 
-TOKEN = 'XXX'
+TOKEN = '987514099:AAH-t8NM-3Iwm2kkWYBjl2cNV8iR5a5wYDo'
 ME = 987514099
 
 app = Flask(__name__)
@@ -145,20 +145,20 @@ def add_new_chat(chat_id, chat_type, title, username, first_name, last_name, pho
         commit()
 
 
-bot.polling()
-# @app.route('/' + TOKEN, methods=['POST'])
-# def get_message():
-#     bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
-#     return "!", 200
-#
-#
-# @app.route("/")
-# def webhook():
-#     bot.remove_webhook()
-#     bot.set_webhook(url='https://your_heroku_project.com/' + TOKEN)
-#     return "!", 200
-#
-#
-# if __name__ == "__main__":
-#     app.run(debug=True)
-#     # server.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
+# bot.polling()
+@app.route('/' + TOKEN, methods=['POST'])
+def get_message():
+    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+    return "!", 200
+
+
+@app.route("/")
+def webhook():
+    bot.remove_webhook()
+    bot.set_webhook(url='https://pytodobot.herokuapp.com/' + TOKEN)
+    return "!", 200
+
+
+if __name__ == "__main__":
+    # app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))

@@ -146,6 +146,12 @@ def add_new_chat(chat_id, chat_type, title, username, first_name, last_name, pho
 
 
 # bot.polling()
+@app.route("/createdb")
+def create_db():
+    db.bind(provider='sqlite', filename='../database.sqlite', create_db=True)
+    db.generate_mapping(create_tables=True)
+
+
 @app.route('/' + TOKEN, methods=['POST'])
 def get_message():
     bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])

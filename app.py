@@ -150,6 +150,7 @@ def add_new_chat(chat_id, chat_type, title, username, first_name, last_name, pho
 def create_db():
     db.bind(provider='sqlite', filename='../database.sqlite', create_db=True)
     db.generate_mapping(create_tables=True)
+    return {'Succes': 'ok'}, 200
 
 
 @app.route('/' + TOKEN, methods=['POST'])

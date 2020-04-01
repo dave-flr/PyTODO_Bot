@@ -33,12 +33,12 @@ def send_welcome(message):
 @bot.message_handler(commands=['add'])
 def add_task(message):
     try:
+        if message.reply_to_message.from_user.id == ME:
+            bot.reply_to(message, "Cannot save my own messages")
+            return
         with db_session:
             if Chat.exists(id=str(message.chat.id)):
                 if message.reply_to_message is not None:
-                    if message.reply_to_message.from_user.id == ME:
-                        bot.reply_to(message, "Cannot save my own messages")
-                        return
                     add_new_task(message.reply_to_message.text, str(message.chat.id), False)
                     bot.reply_to(message, "Task was added.")
                 else:
@@ -60,6 +60,8 @@ def add_task(message):
         pass
     except IndexError as error:
         # is a group
+        if not message.text.startswith("/add@Todo_taskBot"):
+            return
         task = message.text.split("/add@Todo_taskBot ", 1)[1]
         add_new_task(task, str(message.chat.id), False)
         bot.reply_to(message, "Task was added.")
@@ -67,7 +69,7 @@ def add_task(message):
         pass
 
 
-@bot.message_handler(commands=['task'])
+@bot.message_handler(commands=['tasks'])
 def list_all_task(message):
     try:
         with db_session:
@@ -89,12 +91,34 @@ def list_all_task(message):
                     return
                 all_tasks = "*This is your TO-DO List:* \n"
                 for task in task_list:
-                    all_tasks += "📍" + task.task + "\n\n"
+                    all_tasks += "📍" + task.task + " `[" + str(task.id) + "]`\n\n"
                 bot.reply_to(message, all_tasks, parse_mode='markdown')
     except IndexError:
         pass
     else:
         pass
+
+
+@bot.message_handler(commands=['del'])
+def delete_a_task(message):
+    try:
+        task_id = int(message.text.split("/del ", 1)[1])
+        delete_a_task_by_id(task_id)
+    except IndexError as error:
+        # is a group
+        if not message.text.startswith("/del@Todo_taskBot"):
+            return
+
+        task_id = int(message.text.split("/del@Todo_taskBot ", 1)[1])
+        delete_a_task_by_id(task_id)
+        bot.reply_to(message, "Task was deleted.")
+    else:
+        bot.reply_to(message, "Task was deleted.")
+
+
+@db_session
+def delete_a_task_by_id(task_id):
+    Task[task_id].delete()
 
 
 def add_new_task(task, chat, complete):

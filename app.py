@@ -6,7 +6,7 @@ from pony.orm import db_session, commit, TransactionIntegrityError
 
 from models import Task, Chat, db
 
-TOKEN = '987514099:AAH-t8NM-3Iwm2kkWYBjl2cNV8iR5a5wYDo'
+TOKEN = 'XXX'
 ME = 987514099
 
 app = Flask(__name__)

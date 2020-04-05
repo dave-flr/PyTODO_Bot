@@ -20,4 +20,4 @@ Add me to a [group](https://telegram.me/Todo_taskBot?startgroup=true)
 
 You can add a task by responding to a message:
 
-![Tip](https://i.imgur.com/TwTNgyq.png =480x260)
+<img src="https://i.imgur.com/TwTNgyq.png" width="480" height="260">

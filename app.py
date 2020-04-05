@@ -123,7 +123,13 @@ def add_new_chat(message):
 def create_db():
     db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
     db.generate_mapping(create_tables=True)
-    return {'Succes': 'ok'}, 200
+    return {'Success': 'ok'}, 200
+
+
+@app.route("/delete-webhook")
+def delete_webhook():
+    bot.remove_webhook()
+    return {"status": "Webhook removed"}, 200
 
 
 @app.route('/' + TOKEN, methods=['POST'])

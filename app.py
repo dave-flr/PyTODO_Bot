@@ -2,8 +2,7 @@ import os
 import telebot
 
 from flask import Flask, request
-from pony.orm import db_session, commit, TransactionIntegrityError, select
-from telebot.types import Message
+from pony.orm import db_session, commit, TransactionIntegrityError
 
 from models import Task, Chat, db
 
@@ -106,7 +105,7 @@ def add_new_task(task, chat, complete):
 def add_new_chat(message):
     with db_session:
         Chat(id=str(message.chat.id),
-             type=message.chat.chat_type,
+             type=message.chat.type,
              title=message.chat.title,
              username=message.chat.username,
              first_name=message.chat.first_name,

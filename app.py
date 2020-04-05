@@ -3,6 +3,7 @@ import telebot
 
 from flask import Flask, request
 from pony.orm import db_session, commit, TransactionIntegrityError, select
+from telebot.types import Message
 
 from models import Task, Chat, db
 
@@ -17,16 +18,7 @@ bot = telebot.TeleBot(TOKEN)
 def send_welcome(message):
     with db_session:
         if not Chat.exists(id=str(message.chat.id)):
-            add_new_chat(str(message.chat.id),
-                         message.chat.type,
-                         message.chat.title,
-                         message.chat.username,
-                         message.chat.first_name,
-                         message.chat.last_name,
-                         message.chat.photo,
-                         message.chat.description,
-                         message.chat.invite_link,
-                         message.chat.pinned_message)
+            add_new_chat(message)
     bot.reply_to(message, "Howdy, how are you doing?")
 
 
@@ -39,23 +31,14 @@ def add_task(message):
                     if message.reply_to_message.from_user.id == ME:
                         bot.reply_to(message, "Cannot save my own messages")
                         return
-                    add_new_task(message.reply_to_message.text, str(message.chat.id), False)
+                    add_new_task(message.reply_to_message.text, str(message.chat.id), complete=False)
                     bot.reply_to(message, "Task was added.")
                 else:
                     task = message.text.split("/add ", 1)[1]
-                    add_new_task(task, str(message.chat.id), False)
+                    add_new_task(task, str(message.chat.id), complete=False)
                     bot.reply_to(message, "Task was added.")
             else:
-                add_new_chat(str(message.chat.id),
-                             message.chat.type,
-                             message.chat.title,
-                             message.chat.username,
-                             message.chat.first_name,
-                             message.chat.last_name,
-                             message.chat.photo,
-                             message.chat.description,
-                             message.chat.invite_link,
-                             message.chat.pinned_message)
+                add_new_chat(message)
     except TransactionIntegrityError:
         pass
     except IndexError as error:
@@ -63,7 +46,7 @@ def add_task(message):
         if not message.text.startswith("/add@Todo_taskBot"):
             return
         task = message.text.split("/add@Todo_taskBot ", 1)[1]
-        add_new_task(task, str(message.chat.id), False)
+        add_new_task(task, str(message.chat.id), complete=False)
         bot.reply_to(message, "Task was added.")
     else:
         pass
@@ -74,16 +57,7 @@ def list_all_task(message):
     try:
         with db_session:
             if not Chat.exists(id=str(message.chat.id)):
-                add_new_chat(str(message.chat.id),
-                             message.chat.type,
-                             message.chat.title,
-                             message.chat.username,
-                             message.chat.first_name,
-                             message.chat.last_name,
-                             message.chat.photo,
-                             message.chat.description,
-                             message.chat.invite_link,
-                             message.chat.pinned_message)
+                add_new_chat(message)
             else:
                 task_list = list(Task.select(lambda t: t.chat.id == message.chat.id))
                 if len(task_list) == 0:
@@ -129,19 +103,18 @@ def add_new_task(task, chat, complete):
         commit()
 
 
-def add_new_chat(chat_id, chat_type, title, username, first_name, last_name, photo, description, invite_link,
-                 pinned_message):
+def add_new_chat(message):
     with db_session:
-        Chat(id=str(chat_id),
-             type=chat_type,
-             title=title,
-             username=username,
-             first_name=first_name,
-             last_name=last_name,
-             photo=photo,
-             description=description,
-             invite_link=invite_link,
-             pinned_message=pinned_message)
+        Chat(id=str(message.chat.id),
+             type=message.chat.chat_type,
+             title=message.chat.title,
+             username=message.chat.username,
+             first_name=message.chat.first_name,
+             last_name=message.chat.last_name,
+             photo=message.chat.photo,
+             description=message.chat.description,
+             invite_link=message.chat.invite_link,
+             pinned_message=message.chat.pinned_message)
         commit()
 
 

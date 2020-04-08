@@ -1,10 +1,17 @@
 import os
 import telebot
+import requests
 
 from flask import Flask, request
 from pony.orm import db_session, commit, TransactionIntegrityError
+from imgurpython import ImgurClient
 
 from models import Task, Chat, db
+
+CLIENT_ID = ''
+CLIENT_SECRET = ''
+
+client = ImgurClient(CLIENT_ID, CLIENT_SECRET)
 
 TOKEN = '987514099:AAEtGuyt0_bwKGZlVJILc8yJQFITAj21QlU'
 ME = 987514099
@@ -87,6 +94,18 @@ def delete_a_task(message):
         bot.reply_to(message, "Task was deleted.")
     else:
         bot.reply_to(message, "Task was deleted.")
+
+
+# Upload an image to Imgur
+@bot.message_handler(commands=['imgur'])
+def upload_to_imgur(message):
+    if message.reply_to_message is not None:
+        if message.reply_to_message.photo is not None:
+            file_info_url = bot.get_file_url(message.reply_to_message.photo[-1].file_id)
+
+            # Upload the Image
+            image = client.upload_from_url(file_info_url)
+            bot.send_message(message.chat.id, image['link'])
 
 
 @db_session

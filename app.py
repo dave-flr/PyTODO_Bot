@@ -8,12 +8,12 @@ from imgurpython import ImgurClient
 
 from models import Task, Chat, db
 
-CLIENT_ID = ''
-CLIENT_SECRET = ''
+CLIENT_ID = 'e8471ae3d76125f'
+CLIENT_SECRET = '879abc17fecb48949dd81ff16cb08bba7d0ecd25'
 
 client = ImgurClient(CLIENT_ID, CLIENT_SECRET)
 
-TOKEN = ''
+TOKEN = '987514099:AAHj2pBjUtdcfAfyrivvrHvJNVv-RxcyEzI'
 ME = 987514099
 
 app = Flask(__name__)

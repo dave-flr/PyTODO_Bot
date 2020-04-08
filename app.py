@@ -13,7 +13,7 @@ CLIENT_SECRET = ''
 
 client = ImgurClient(CLIENT_ID, CLIENT_SECRET)
 
-TOKEN = '987514099:AAEtGuyt0_bwKGZlVJILc8yJQFITAj21QlU'
+TOKEN = ''
 ME = 987514099
 
 app = Flask(__name__)

@@ -20,6 +20,7 @@ class Chat(db.Entity):
 
 class Task(db.Entity):
     id = PrimaryKey(int, auto=True)
+    id_in_chat = Required(int)
     task = Required(str)
     chat = Required(Chat)  # A task belongs to a chat
     complete = Required(bool)

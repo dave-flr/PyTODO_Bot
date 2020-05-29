@@ -1,17 +1,11 @@
 import os
 import telebot
-import requests
 
 from flask import Flask, request
-from pony.orm import db_session, commit, TransactionIntegrityError
-from imgurpython import ImgurClient
+from pony.orm import db_session, commit, TransactionIntegrityError, select, count
 
 from models import Task, Chat, db
-
-CLIENT_ID = 'e8471ae3d76125f'
-CLIENT_SECRET = '879abc17fecb48949dd81ff16cb08bba7d0ecd25'
-
-client = ImgurClient(CLIENT_ID, CLIENT_SECRET)
+from services import imgur_client
 
 TOKEN = '987514099:AAHj2pBjUtdcfAfyrivvrHvJNVv-RxcyEzI'
 ME = 987514099
@@ -37,22 +31,28 @@ def add_task(message):
                     if message.reply_to_message.from_user.id == ME:
                         bot.reply_to(message, "Cannot save my own messages")
                         return
-                    add_new_task(message.reply_to_message.text, str(message.chat.id), complete=False)
+                    add_new_task(task=message.reply_to_message.text,
+                                 chat=str(message.chat.id),
+                                 complete=False)
                     bot.reply_to(message, "Task was added.")
                 else:
                     task = message.text.split("/add ", 1)[1]
-                    add_new_task(task, str(message.chat.id), complete=False)
+                    add_new_task(task=task,
+                                 chat=str(message.chat.id),
+                                 complete=False)
                     bot.reply_to(message, "Task was added.")
             else:
                 add_new_chat(message)
-    except TransactionIntegrityError:
-        pass
+    except TransactionIntegrityError as e:
+        print(str(e))
     except IndexError as error:
         # is a group
         if not message.text.startswith("/add@Todo_taskBot"):
             return
         task = message.text.split("/add@Todo_taskBot ", 1)[1]
-        add_new_task(task, str(message.chat.id), complete=False)
+        add_new_task(task=task,
+                     chat=str(message.chat.id),
+                     complete=False)
         bot.reply_to(message, "Task was added.")
     else:
         pass
@@ -65,13 +65,15 @@ def list_all_task(message):
             if not Chat.exists(id=str(message.chat.id)):
                 add_new_chat(message)
             else:
-                task_list = list(Task.select(lambda t: t.chat.id == message.chat.id))
+                task_list = list(Task.select(
+                    lambda t: t.chat.id == message.chat.id))
                 if len(task_list) == 0:
                     bot.reply_to(message, "Your TO-DO list is empty")
                     return
                 all_tasks = "*This is your TO-DO List:* \n"
                 for task in task_list:
-                    all_tasks += "📍" + task.task + " `[" + str(task.id) + "]`\n\n"
+                    all_tasks += "📍" + task.task + \
+                                 " `[" + str(task.id_in_chat) + "]`\n\n"
                 bot.reply_to(message, all_tasks, parse_mode='markdown')
     except IndexError:
         pass
@@ -83,14 +85,16 @@ def list_all_task(message):
 def delete_a_task(message):
     try:
         task_id = int(message.text.split("/del ", 1)[1])
-        delete_a_task_by_id(task_id)
+        delete_a_task_by_id(task_id=task_id,
+                            chat=message.chat.id)
     except IndexError as error:
         # is a group
         if not message.text.startswith("/del@Todo_taskBot"):
             return
 
         task_id = int(message.text.split("/del@Todo_taskBot ", 1)[1])
-        delete_a_task_by_id(task_id)
+        delete_a_task_by_id(task_id=task_id,
+                            chat=message.chat.id)
         bot.reply_to(message, "Task was deleted.")
     else:
         bot.reply_to(message, "Task was deleted.")
@@ -101,21 +105,25 @@ def delete_a_task(message):
 def upload_to_imgur(message):
     if message.reply_to_message is not None:
         if message.reply_to_message.photo is not None:
-            file_info_url = bot.get_file_url(message.reply_to_message.photo[-1].file_id)
+            file_info_url = bot.get_file_url(
+                message.reply_to_message.photo[-1].file_id)
 
             # Upload the Image
-            image = client.upload_from_url(file_info_url)
+            image = imgur_client.upload_from_url(file_info_url)
             bot.send_message(message.chat.id, image['link'])
 
 
 @db_session
-def delete_a_task_by_id(task_id):
-    Task[task_id].delete()
+def delete_a_task_by_id(task_id, chat):
+    real_task = list(Task.select(lambda t: t.chat.id == chat and t.id_in_chat == task_id))
+    Task[real_task[0].id].delete()
 
 
 def add_new_task(task, chat, complete):
+    number_of_tasks_by_chat = select(t.id_in_chat for t in Task if t.chat.id == chat).max()
     with db_session:
-        Task(task=task,
+        Task(id_in_chat=1 if number_of_tasks_by_chat is None else number_of_tasks_by_chat + 1,
+             task=task,
              chat=chat,
              complete=complete)
         commit()

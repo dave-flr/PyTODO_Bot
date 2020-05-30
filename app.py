@@ -66,7 +66,7 @@ def list_all_task(message):
                 add_new_chat(message)
             else:
                 task_list = list(Task.select(
-                    lambda t: t.chat.id == message.chat.id))
+                    lambda t: t.chat.id == str(message.chat.id)))
                 if len(task_list) == 0:
                     bot.reply_to(message, "Your TO-DO list is empty")
                     return

@@ -29,4 +29,5 @@ class Task(db.Entity):
 
 
 db.bind(provider='postgres', dsn=os.getenv('DATABASE_URL'))
+# db.bind(provider='postgres', user='todobotuser', password='1234', host='localhost', database='todobot')
 db.generate_mapping(create_tables=True)

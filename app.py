@@ -5,7 +5,7 @@ from flask import Flask, request
 from pony.orm import db_session, commit, TransactionIntegrityError, select, count
 
 from models import Task, Chat, db
-from services import imgur_client, generate_qr, decode_qr
+from services import imgur_client, generate_qr, decode_qr, text_to_speech
 from io import BytesIO
 
 TOKEN = '987514099:AAHj2pBjUtdcfAfyrivvrHvJNVv-RxcyEzI'
@@ -116,20 +116,17 @@ def upload_to_imgur(message):
 
 @bot.message_handler(commands=['qrcode'])
 def generate_qr_code_method(message):
-    if message.reply_to_message is not None:
-        img = generate_qr(text=message.reply_to_message.text)
-        send_qr_to_chat(img, message.chat.id)
-    else:
-        text = message.text.split("/qrcode ", 1)[1]
-        img = generate_qr(text)
-        send_qr_to_chat(image=img, chat_id=message.chat.id)
-
-
-def send_qr_to_chat(image, chat_id):
-    buf = BytesIO()
-    image.save(buf, format='PNG')
-    bytes_img = buf.getvalue()
-    bot.send_photo(chat_id, bytes_img)
+    try:
+        if message.reply_to_message is not None:
+            img = generate_qr(text=message.reply_to_message.text)
+            send_qr_to_chat(image=img, chat_id=message.chat.id)
+        else:
+            text = message.text.split("/qrcode ", 1)[1]
+            img = generate_qr(text)
+            send_qr_to_chat(image=img, chat_id=message.chat.id)
+    except IndexError as error:
+        # If we got this error it means the command is empty
+        pass
 
 
 @bot.message_handler(commands=['qrdecode'])
@@ -141,6 +138,39 @@ def decode_qr_code_method(message):
 
             qr_decoded = decode_qr(file_info_url)
             bot.reply_to(message, qr_decoded)
+
+
+def send_qr_to_chat(image, chat_id):
+    buf = BytesIO()
+    image.save(buf, format='PNG')
+    bytes_img = buf.getvalue()
+    bot.send_photo(chat_id, bytes_img)  # send qr photo
+
+
+@bot.message_handler(commands=['tts'])
+def text_to_speech_method(message):
+    try:
+        if message.reply_to_message is not None:
+            tts = text_to_speech(text=message.reply_to_message.text,
+                                 lang='es',
+                                 slow=False)
+            send_tts_to_chat(audio=tts, chat_id=message.chat.id)
+        else:
+            text = message.text.split("/tts ", 1)[1]
+            tts = text_to_speech(text=text,
+                                 lang='es',
+                                 slow=False)
+            send_tts_to_chat(audio=tts, chat_id=message.chat.id)
+    except IndexError as error:
+        # If we got this error it means the command is empty
+        pass
+
+
+def send_tts_to_chat(audio, chat_id):
+    mp3_bf = BytesIO()
+    audio.write_to_fp(mp3_bf)
+    bytes_audio = mp3_bf.getvalue()
+    bot.send_voice(chat_id, bytes_audio)  # send voice note
 
 
 @db_session
@@ -175,12 +205,6 @@ def add_new_chat(message):
 
 
 # bot.polling()
-# @app.route("/createdb")
-# def create_db():
-#     db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
-#     db.generate_mapping(create_tables=True)
-#     return {'Success': 'ok'}, 200
-
 
 @app.route("/delete-webhook")
 def delete_webhook():

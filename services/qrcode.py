@@ -15,4 +15,4 @@ def decode_qr(img_url):
     image.load()
 
     codes = zbarlight.scan_codes(['qrcode'], image)
-    return codes[0].decode()
+    return codes[0]

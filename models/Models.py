@@ -28,5 +28,5 @@ class Task(db.Entity):
     complete = Required(bool)
 
 
-db.bind(provider='postgres', dsn=os.getenv('DATABASE_URL'), create_db=True)
+db.bind(provider='postgres', dsn=os.getenv('DATABASE_URL'))
 db.generate_mapping(create_tables=True)

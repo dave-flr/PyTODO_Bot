@@ -5,7 +5,8 @@ from flask import Flask, request
 from pony.orm import db_session, commit, TransactionIntegrityError, select, count
 
 from models import Task, Chat, db
-from services import imgur_client
+from services import imgur_client, generate_qr, decode_qr
+from io import BytesIO
 
 TOKEN = '987514099:AAHj2pBjUtdcfAfyrivvrHvJNVv-RxcyEzI'
 ME = 987514099
@@ -111,6 +112,35 @@ def upload_to_imgur(message):
             # Upload the Image
             image = imgur_client.upload_from_url(file_info_url)
             bot.send_message(message.chat.id, image['link'])
+
+
+@bot.message_handler(commands=['qrcode'])
+def generate_qr_code_method(message):
+    if message.reply_to_message is not None:
+        img = generate_qr(text=message.reply_to_message.text)
+        send_qr_to_chat(img, message.chat.id)
+    else:
+        text = message.text.split("/qrcode ", 1)[1]
+        img = generate_qr(text)
+        send_qr_to_chat(image=img, chat_id=message.chat.id)
+
+
+def send_qr_to_chat(image, chat_id):
+    buf = BytesIO()
+    image.save(buf, format='PNG')
+    bytes_img = buf.getvalue()
+    bot.send_photo(chat_id, bytes_img)
+
+
+@bot.message_handler(commands=['qrdecode'])
+def decode_qr_code_method(message):
+    if message.reply_to_message is not None:
+        if message.reply_to_message.photo is not None:
+            file_info_url = bot.get_file_url(
+                message.reply_to_message.photo[-1].file_id)
+
+            qr_decoded = decode_qr(file_info_url)
+            bot.reply_to(message, qr_decoded)
 
 
 @db_session

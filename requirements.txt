@@ -8,12 +8,15 @@ imgurpython==1.1.7
 itsdangerous==1.1.0
 Jinja2==2.11.1
 MarkupSafe==1.1.1
+Pillow==7.1.2
 pony==0.7.13
 psycopg2==2.8.5
 psycopg2-binary==2.8.5
 pycodestyle==2.6.0
 pyTelegramBotAPI==3.6.7
+qrcode==6.1
 requests==2.23.0
 six==1.14.0
 urllib3==1.25.8
 Werkzeug==1.0.0
+zbarlight==3.0

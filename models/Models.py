@@ -1,3 +1,5 @@
+import os
+
 from pony.orm import Database, Required, Optional, Set, PrimaryKey
 
 db = Database()
@@ -26,5 +28,5 @@ class Task(db.Entity):
     complete = Required(bool)
 
 
-db.bind(provider='sqlite', filename='../database.sqlite', create_db=True)
+db.bind(provider='postgres', dsn=os.getenv('DATABASE_URL'), create_db=True)
 db.generate_mapping(create_tables=True)

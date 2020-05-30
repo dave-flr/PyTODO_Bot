@@ -145,11 +145,11 @@ def add_new_chat(message):
 
 
 # bot.polling()
-@app.route("/createdb")
-def create_db():
-    db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
-    db.generate_mapping(create_tables=True)
-    return {'Success': 'ok'}, 200
+# @app.route("/createdb")
+# def create_db():
+#     db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
+#     db.generate_mapping(create_tables=True)
+#     return {'Success': 'ok'}, 200
 
 
 @app.route("/delete-webhook")

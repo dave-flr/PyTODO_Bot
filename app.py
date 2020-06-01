@@ -8,6 +8,7 @@ from pony.flask import Pony
 from models import Task, Chat, db
 from services import imgur_client, generate_qr, decode_qr, text_to_speech
 from io import BytesIO
+from telebot.apihelper import ApiException
 
 TOKEN = '987514099:AAHj2pBjUtdcfAfyrivvrHvJNVv-RxcyEzI'
 ME = 987514099
@@ -77,8 +78,8 @@ def list_all_task(message):
                 for task in task_list:
                     all_tasks += "📍" + task.task + " `[" + str(task.id_in_chat) + "]`\n\n"
                 bot.reply_to(message, all_tasks, parse_mode='markdown')
-        except IndexError:
-            pass
+        except ApiException as e:
+            print(str(e))
         else:
             pass
 

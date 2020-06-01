@@ -17,6 +17,7 @@ bot = telebot.TeleBot(TOKEN)
 Pony(app)
 
 
+@db_session
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     if not Chat.exists(id=str(message.chat.id)):
@@ -24,6 +25,7 @@ def send_welcome(message):
     bot.reply_to(message, "Howdy, how are you doing?")
 
 
+@db_session
 @bot.message_handler(commands=['add'])
 def add_task(message):
     try:
@@ -59,6 +61,7 @@ def add_task(message):
         pass
 
 
+@db_session
 @bot.message_handler(commands=['tasks'])
 def list_all_task(message):
     try:
@@ -81,6 +84,7 @@ def list_all_task(message):
         pass
 
 
+@db_session
 @bot.message_handler(commands=['del'])
 def delete_a_task(message):
     try:

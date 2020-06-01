@@ -76,7 +76,8 @@ def list_all_task(message):
                     return
                 all_tasks = "*This is your TO-DO List:* \n"
                 for task in task_list:
-                    all_tasks += "📍" + task.task + " `[" + str(task.id_in_chat) + "]`\n\n"
+                    all_tasks += "📍" + task.task + " `[" + str(task.id_in_chat) + "]`\n\n".replace(
+                        "*", "\*").replace("_", "\_").replace("`", "\`")
                 print(all_tasks)
                 bot.reply_to(message, all_tasks, parse_mode='markdown')
         except ApiException as e:

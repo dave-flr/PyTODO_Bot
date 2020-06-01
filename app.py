@@ -172,12 +172,14 @@ def send_tts_to_chat(audio, chat_id):
     bot.send_voice(chat_id, bytes_audio)  # send voice note
 
 
+@db_session
 def delete_a_task_by_id(task_id, chat):
     real_task = list(Task.select(lambda t: t.chat.id ==
                                  chat and t.id_in_chat == task_id))
     Task[real_task[0].id].delete()
 
 
+@db_session
 def add_new_task(task, chat, complete):
     number_of_tasks_by_chat = select(
         t.id_in_chat for t in Task if t.chat.id == chat).max()
@@ -185,9 +187,10 @@ def add_new_task(task, chat, complete):
          task=task,
          chat=chat,
          complete=complete)
-    commit()
+    # commit()
 
 
+@db_session
 def add_new_chat(message):
     Chat(id=str(message.chat.id),
          type=message.chat.type,
@@ -199,7 +202,7 @@ def add_new_chat(message):
          description=message.chat.description,
          invite_link=message.chat.invite_link,
          pinned_message=message.chat.pinned_message)
-    commit()
+    # commit()
 
 
 # bot.polling()

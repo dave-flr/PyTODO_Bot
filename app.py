@@ -17,91 +17,91 @@ bot = telebot.TeleBot(TOKEN)
 Pony(app)
 
 
-@db_session
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    if not Chat.exists(id=str(message.chat.id)):
-        add_new_chat(message)
-    bot.reply_to(message, "Howdy, how are you doing?")
-
-
-@db_session
-@bot.message_handler(commands=['add'])
-def add_task(message):
-    try:
-        if Chat.exists(id=str(message.chat.id)):
-            if message.reply_to_message is not None:
-                if message.reply_to_message.from_user.id == ME:
-                    bot.reply_to(message, "Cannot save my own messages")
-                    return
-                add_new_task(task=message.reply_to_message.text,
-                             chat=str(message.chat.id),
-                             complete=False)
-                bot.reply_to(message, "Task was added.")
-            else:
-                task = message.text.split("/add ", 1)[1]
-                add_new_task(task=task,
-                             chat=str(message.chat.id),
-                             complete=False)
-                bot.reply_to(message, "Task was added.")
-        else:
-            add_new_chat(message)
-    except TransactionIntegrityError as e:
-        print(str(e))
-    except IndexError as error:
-        # is a group
-        if not message.text.startswith("/add@Todo_taskBot"):
-            return
-        task = message.text.split("/add@Todo_taskBot ", 1)[1]
-        add_new_task(task=task,
-                     chat=str(message.chat.id),
-                     complete=False)
-        bot.reply_to(message, "Task was added.")
-    else:
-        pass
-
-
-@db_session
-@bot.message_handler(commands=['tasks'])
-def list_all_task(message):
-    try:
+    with db_session:
         if not Chat.exists(id=str(message.chat.id)):
             add_new_chat(message)
-        else:
-            task_list = list(Task.select(
-                lambda t: t.chat.id == str(message.chat.id)))
-            if len(task_list) == 0:
-                bot.reply_to(message, "Your TO-DO list is empty")
+        bot.reply_to(message, "Howdy, how are you doing?")
+
+
+@bot.message_handler(commands=['add'])
+def add_task(message):
+    with db_session:
+        try:
+            if Chat.exists(id=str(message.chat.id)):
+                if message.reply_to_message is not None:
+                    if message.reply_to_message.from_user.id == ME:
+                        bot.reply_to(message, "Cannot save my own messages")
+                        return
+                    add_new_task(task=message.reply_to_message.text,
+                                 chat=str(message.chat.id),
+                                 complete=False)
+                    bot.reply_to(message, "Task was added.")
+                else:
+                    task = message.text.split("/add ", 1)[1]
+                    add_new_task(task=task,
+                                 chat=str(message.chat.id),
+                                 complete=False)
+                    bot.reply_to(message, "Task was added.")
+            else:
+                add_new_chat(message)
+        except TransactionIntegrityError as e:
+            print(str(e))
+        except IndexError as error:
+            # is a group
+            if not message.text.startswith("/add@Todo_taskBot"):
                 return
-            all_tasks = "*This is your TO-DO List:* \n"
-            for task in task_list:
-                all_tasks += "📍" + task.task + \
-                             " `[" + str(task.id_in_chat) + "]`\n\n"
-            bot.reply_to(message, all_tasks, parse_mode='markdown')
-    except IndexError:
-        pass
-    else:
-        pass
+            task = message.text.split("/add@Todo_taskBot ", 1)[1]
+            add_new_task(task=task,
+                         chat=str(message.chat.id),
+                         complete=False)
+            bot.reply_to(message, "Task was added.")
+        else:
+            pass
 
 
-@db_session
+@bot.message_handler(commands=['tasks'])
+def list_all_task(message):
+    with db_session:
+        try:
+            if not Chat.exists(id=str(message.chat.id)):
+                add_new_chat(message)
+            else:
+                task_list = list(Task.select(
+                    lambda t: t.chat.id == str(message.chat.id)))
+                if len(task_list) == 0:
+                    bot.reply_to(message, "Your TO-DO list is empty")
+                    return
+                all_tasks = "*This is your TO-DO List:* \n"
+                for task in task_list:
+                    all_tasks += "📍" + task.task + \
+                        " `[" + str(task.id_in_chat) + "]`\n\n"
+                bot.reply_to(message, all_tasks, parse_mode='markdown')
+        except IndexError:
+            pass
+        else:
+            pass
+
+
 @bot.message_handler(commands=['del'])
 def delete_a_task(message):
-    try:
-        task_id = int(message.text.split("/del ", 1)[1])
-        delete_a_task_by_id(task_id=task_id,
-                            chat=message.chat.id)
-    except IndexError as error:
-        # is a group
-        if not message.text.startswith("/del@Todo_taskBot"):
-            return
+    with db_session:
+        try:
+            task_id = int(message.text.split("/del ", 1)[1])
+            delete_a_task_by_id(task_id=task_id,
+                                chat=message.chat.id)
+        except IndexError as error:
+            # is a group
+            if not message.text.startswith("/del@Todo_taskBot"):
+                return
 
-        task_id = int(message.text.split("/del@Todo_taskBot ", 1)[1])
-        delete_a_task_by_id(task_id=task_id,
-                            chat=message.chat.id)
-        bot.reply_to(message, "Task was deleted.")
-    else:
-        bot.reply_to(message, "Task was deleted.")
+            task_id = int(message.text.split("/del@Todo_taskBot ", 1)[1])
+            delete_a_task_by_id(task_id=task_id,
+                                chat=message.chat.id)
+            bot.reply_to(message, "Task was deleted.")
+        else:
+            bot.reply_to(message, "Task was deleted.")
 
 
 # Upload an image to Imgur

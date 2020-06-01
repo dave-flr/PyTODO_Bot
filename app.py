@@ -75,8 +75,7 @@ def list_all_task(message):
                     return
                 all_tasks = "*This is your TO-DO List:* \n"
                 for task in task_list:
-                    all_tasks += "📍" + task.task + \
-                        " `[" + str(task.id_in_chat) + "]`\n\n"
+                    all_tasks += "📍" + task.task + " `[" + str(task.id_in_chat) + "]`\n\n"
                 bot.reply_to(message, all_tasks, parse_mode='markdown')
         except IndexError:
             pass
@@ -90,7 +89,7 @@ def delete_a_task(message):
         try:
             task_id = int(message.text.split("/del ", 1)[1])
             delete_a_task_by_id(task_id=task_id,
-                                chat=message.chat.id)
+                                chat=str(message.chat.id))
         except IndexError as error:
             # is a group
             if not message.text.startswith("/del@Todo_taskBot"):
@@ -98,7 +97,7 @@ def delete_a_task(message):
 
             task_id = int(message.text.split("/del@Todo_taskBot ", 1)[1])
             delete_a_task_by_id(task_id=task_id,
-                                chat=message.chat.id)
+                                chat=str(message.chat.id))
             bot.reply_to(message, "Task was deleted.")
         else:
             bot.reply_to(message, "Task was deleted.")

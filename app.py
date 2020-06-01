@@ -3,6 +3,7 @@ import telebot
 
 from flask import Flask, request
 from pony.orm import db_session, commit, TransactionIntegrityError, select, count
+from pony.flask import Pony
 
 from models import Task, Chat, db
 from services import imgur_client, generate_qr, decode_qr, text_to_speech
@@ -13,37 +14,36 @@ ME = 987514099
 
 app = Flask(__name__)
 bot = telebot.TeleBot(TOKEN)
+Pony(app)
 
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    with db_session:
-        if not Chat.exists(id=str(message.chat.id)):
-            add_new_chat(message)
+    if not Chat.exists(id=str(message.chat.id)):
+        add_new_chat(message)
     bot.reply_to(message, "Howdy, how are you doing?")
 
 
 @bot.message_handler(commands=['add'])
 def add_task(message):
     try:
-        with db_session:
-            if Chat.exists(id=str(message.chat.id)):
-                if message.reply_to_message is not None:
-                    if message.reply_to_message.from_user.id == ME:
-                        bot.reply_to(message, "Cannot save my own messages")
-                        return
-                    add_new_task(task=message.reply_to_message.text,
-                                 chat=str(message.chat.id),
-                                 complete=False)
-                    bot.reply_to(message, "Task was added.")
-                else:
-                    task = message.text.split("/add ", 1)[1]
-                    add_new_task(task=task,
-                                 chat=str(message.chat.id),
-                                 complete=False)
-                    bot.reply_to(message, "Task was added.")
+        if Chat.exists(id=str(message.chat.id)):
+            if message.reply_to_message is not None:
+                if message.reply_to_message.from_user.id == ME:
+                    bot.reply_to(message, "Cannot save my own messages")
+                    return
+                add_new_task(task=message.reply_to_message.text,
+                             chat=str(message.chat.id),
+                             complete=False)
+                bot.reply_to(message, "Task was added.")
             else:
-                add_new_chat(message)
+                task = message.text.split("/add ", 1)[1]
+                add_new_task(task=task,
+                             chat=str(message.chat.id),
+                             complete=False)
+                bot.reply_to(message, "Task was added.")
+        else:
+            add_new_chat(message)
     except TransactionIntegrityError as e:
         print(str(e))
     except IndexError as error:
@@ -62,20 +62,19 @@ def add_task(message):
 @bot.message_handler(commands=['tasks'])
 def list_all_task(message):
     try:
-        with db_session:
-            if not Chat.exists(id=str(message.chat.id)):
-                add_new_chat(message)
-            else:
-                task_list = list(Task.select(
-                    lambda t: t.chat.id == str(message.chat.id)))
-                if len(task_list) == 0:
-                    bot.reply_to(message, "Your TO-DO list is empty")
-                    return
-                all_tasks = "*This is your TO-DO List:* \n"
-                for task in task_list:
-                    all_tasks += "📍" + task.task + \
-                                 " `[" + str(task.id_in_chat) + "]`\n\n"
-                bot.reply_to(message, all_tasks, parse_mode='markdown')
+        if not Chat.exists(id=str(message.chat.id)):
+            add_new_chat(message)
+        else:
+            task_list = list(Task.select(
+                lambda t: t.chat.id == str(message.chat.id)))
+            if len(task_list) == 0:
+                bot.reply_to(message, "Your TO-DO list is empty")
+                return
+            all_tasks = "*This is your TO-DO List:* \n"
+            for task in task_list:
+                all_tasks += "📍" + task.task + \
+                             " `[" + str(task.id_in_chat) + "]`\n\n"
+            bot.reply_to(message, all_tasks, parse_mode='markdown')
     except IndexError:
         pass
     else:
@@ -173,35 +172,34 @@ def send_tts_to_chat(audio, chat_id):
     bot.send_voice(chat_id, bytes_audio)  # send voice note
 
 
-@db_session
 def delete_a_task_by_id(task_id, chat):
-    real_task = list(Task.select(lambda t: t.chat.id == chat and t.id_in_chat == task_id))
+    real_task = list(Task.select(lambda t: t.chat.id ==
+                                 chat and t.id_in_chat == task_id))
     Task[real_task[0].id].delete()
 
 
 def add_new_task(task, chat, complete):
-    number_of_tasks_by_chat = select(t.id_in_chat for t in Task if t.chat.id == chat).max()
-    with db_session:
-        Task(id_in_chat=1 if number_of_tasks_by_chat is None else number_of_tasks_by_chat + 1,
-             task=task,
-             chat=chat,
-             complete=complete)
-        commit()
+    number_of_tasks_by_chat = select(
+        t.id_in_chat for t in Task if t.chat.id == chat).max()
+    Task(id_in_chat=1 if number_of_tasks_by_chat is None else number_of_tasks_by_chat + 1,
+         task=task,
+         chat=chat,
+         complete=complete)
+    commit()
 
 
 def add_new_chat(message):
-    with db_session:
-        Chat(id=str(message.chat.id),
-             type=message.chat.type,
-             title=message.chat.title,
-             username=message.chat.username,
-             first_name=message.chat.first_name,
-             last_name=message.chat.last_name,
-             photo=message.chat.photo,
-             description=message.chat.description,
-             invite_link=message.chat.invite_link,
-             pinned_message=message.chat.pinned_message)
-        commit()
+    Chat(id=str(message.chat.id),
+         type=message.chat.type,
+         title=message.chat.title,
+         username=message.chat.username,
+         first_name=message.chat.first_name,
+         last_name=message.chat.last_name,
+         photo=message.chat.photo,
+         description=message.chat.description,
+         invite_link=message.chat.invite_link,
+         pinned_message=message.chat.pinned_message)
+    commit()
 
 
 # bot.polling()
@@ -214,7 +212,8 @@ def delete_webhook():
 
 @app.route('/' + TOKEN, methods=['POST'])
 def get_message():
-    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+    bot.process_new_updates(
+        [telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
     return "!", 200
 
 

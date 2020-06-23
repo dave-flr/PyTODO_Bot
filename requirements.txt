@@ -17,6 +17,7 @@ psycopg2==2.8.5
 psycopg2-binary==2.8.5
 pycodestyle==2.6.0
 pyTelegramBotAPI==3.6.7
+python-dotenv==0.13.0
 qrcode==6.1
 requests==2.23.0
 six==1.14.0

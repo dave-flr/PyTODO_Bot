@@ -9,8 +9,11 @@ from models import Task, Chat, db
 from services import imgur_client, generate_qr, decode_qr, text_to_speech
 from io import BytesIO
 from telebot.apihelper import ApiException
+from dotenv import load_dotenv
 
-TOKEN = '987514099:AAHj2pBjUtdcfAfyrivvrHvJNVv-RxcyEzI'
+load_dotenv()
+
+TOKEN = os.getenv('BOT_TOKEN')
 ME = 987514099
 
 app = Flask(__name__)

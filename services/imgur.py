@@ -1,6 +1,10 @@
+import os
 from imgurpython import ImgurClient
+from dotenv import load_dotenv
 
-CLIENT_ID = 'e8471ae3d76125f'
-CLIENT_SECRET = '879abc17fecb48949dd81ff16cb08bba7d0ecd25'
+load_dotenv()
+
+CLIENT_ID = os.getenv('CLIENT_ID')
+CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 
 imgur_client = ImgurClient(CLIENT_ID, CLIENT_SECRET)

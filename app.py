@@ -77,11 +77,11 @@ def list_all_task(message):
                 if len(task_list) == 0:
                     bot.reply_to(message, "Your TO-DO list is empty")
                     return
-                all_tasks = "*This is your TO-DO List:* \n"
+                all_tasks = "This is your TO-DO List: \n"
                 for task in task_list:
-                    all_tasks += "📍" + task.task + " `[" + str(task.id_in_chat) + "]`\n\n"
+                    all_tasks += "📍" + task.task + " [" + str(task.id_in_chat) + "]\n\n"
                 print(all_tasks)
-                bot.reply_to(message, all_tasks, parse_mode='markdown')
+                bot.reply_to(message, all_tasks)
         except ApiException as e:
             print(str(e))
         else:

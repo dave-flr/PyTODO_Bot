@@ -26,17 +26,17 @@ You can add a task by responding to a message:
 
 - Imgur
   
-  - Reply to any image with the /imgur command to upload it to Imgur, the bot will send you the link back.
+  - Reply to any image with the `/imgur` command to upload it to Imgur, the bot will send you the link back.
 
 - Qr Codes
   
-  - Use the /qrcode message_here command to automatically generate a Qr code.
+  - Use the `/qrcode message_here` command to automatically generate a Qr code.
   
-  - Respond to any Qr code image with the /qrdecode command to decode it and get the text back._
+  - Respond to any Qr code image with the `/qrdecode` command to decode it and get the text back._
 
 - Text to speech (tts)
   
-  - Usage /tts text_to_voice_here and generate a voice note with the text you sent.
+  - Usage `/tts text_to_voice_here` and generate a voice note with the text you sent.
 
 ### Feature request?
 
